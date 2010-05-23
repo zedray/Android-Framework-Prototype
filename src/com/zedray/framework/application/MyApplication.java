@@ -80,4 +80,16 @@ public class MyApplication extends Application {
         // TODO Implement database.
         return null;
     }
+
+    /***
+     * Terminate the application, so release all resources.
+     */
+    @Override
+    public final void onTerminate() {
+        mServiceQueue = null;
+        mUiQueue = null;
+        mCache = null;
+        //mDb = null;
+        super.onTerminate();
+    }
 }
