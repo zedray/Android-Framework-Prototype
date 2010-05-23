@@ -34,6 +34,17 @@ import com.zedray.framework.utils.Type;
  * its own thread to avoid blocking the UI.
  */
 public class WorkerThread extends Thread {
+
+    /**
+     * [Optional] Execution state of the currently running long process, used by
+     * the service to recover the state after the Service has been abnormally
+     * terminated.
+     */
+    public static final String PROCESS_STATE = "PROCESS_STATE";
+    /** [Optional] Size of long task increment. **/
+    private static final int LONG_TASK_INCREMENT = 10;
+    /** [Optional] End of long task. **/
+    private static final int LONG_TASK_COMPLETE = 100;
     /***
      * [Optional] Configures how much time (in milliseconds) should be wasted
      * between UI updates - for test use only.
@@ -56,13 +67,14 @@ public class WorkerThread extends Thread {
     private boolean stopping = false;
 
     /***
-     * Constructor which caches the Application Cache and UiQueue.
+     * Constructor which caches the Application Cache, UiQueue and Service.
      *
      * @param cache Application Cache.
      * @param uiQueue UiQueue.
+     * @param myService MyService.
      */
     protected WorkerThread(final Cache cache, final UiQueue uiQueue,
-    		final MyService myService) {
+            final MyService myService) {
         mCache = cache;
         mUiQueue = uiQueue;
         mMyService = myService;
@@ -80,7 +92,7 @@ public class WorkerThread extends Thread {
             mWorkQueue.add(message);
         }
         showQueue();
-     }
+    }
 
     /***
      * Returns the current state of the WorkerThread.
@@ -113,19 +125,25 @@ public class WorkerThread extends Thread {
             showQueue();
 
             switch (type) {
-                case DO_SHORT_TASK:
-                	doShortTask(bundle);
-                    break;
+            case DO_SHORT_TASK:
+                doShortTask(bundle);
+                break;
 
-                case DO_LONG_TASK:
-                	doLongTask(bundle);
-                    break;
+            case DO_LONG_TASK:
+                doLongTask(bundle);
+                break;
 
-                default:
-                    // Do nothing.
-                    break;
+            default:
+                // Do nothing.
+                break;
             }
         }
+
+        mCache.setStateLongTask("");
+        mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
+        mCache.setStateShortTask("");
+        mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
+
         stopping = true;
         mMyService.stopSelf();
     }
@@ -134,7 +152,8 @@ public class WorkerThread extends Thread {
      * [Optional] Example task which takes time to complete and repeatedly
      * updates the UI.
      *
-     * @param bundle Bundle of extra information.
+     * @param bundle
+     *            Bundle of extra information.
      */
     private void doShortTask(final Bundle bundle) {
         mCache.setStateShortTask("Loading short task");
@@ -148,12 +167,13 @@ public class WorkerThread extends Thread {
         wasteTime(WASTE_TIME);
         mCache.setStateShortTask("Finished short task");
         mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
-        
+
         if (bundle != null) {
             Bundle outBundle = new Bundle();
-            outBundle.putString("TEXT", "The short task has finished. Called from ["
-                    + bundle.getString("TEXT") + "]");
-            mUiQueue.postToUi(Type.SHOW_DIALOG, outBundle, false);        	
+            outBundle.putString("TEXT",
+                    "The short task has finished. Called from ["
+                            + bundle.getString("TEXT") + "]");
+            mUiQueue.postToUi(Type.SHOW_DIALOG, outBundle, false);
         }
     }
 
@@ -167,17 +187,29 @@ public class WorkerThread extends Thread {
         mCache.setStateLongTask("Loading long task");
         mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
         wasteTime(WASTE_TIME);
-        
-    	for (int i = 0; i <= 100; i+=10) {
+
+        int i = 0;
+        if (bundle != null) {
+            i = bundle.getInt(PROCESS_STATE);
+        } else {
+            i = 0;
+        }
+
+        for (; i <= LONG_TASK_COMPLETE; i += LONG_TASK_INCREMENT) {
             mCache.setStateLongTask("Long task " + i + "% complete");
             mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
-    		NotificationUtils.notifyUserOfProgress(mMyService.getApplicationContext(), i);
-    		wasteTime(WASTE_TIME);
-    	}
+            NotificationUtils.notifyUserOfProgress(mMyService
+                    .getApplicationContext(), i);
+            wasteTime(WASTE_TIME);
+            mCache.setLongProcessState(i);
+        }
+        /** Clear Long Process state. **/
+        mCache.setLongProcessState(-1);
 
         mCache.setStateLongTask("Long task done");
         mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
-        NotificationUtils.notifyUserOfProgress(mMyService.getApplicationContext(), -1);
+        NotificationUtils.notifyUserOfProgress(mMyService
+                .getApplicationContext(), -1);
     }
 
     /***
@@ -197,10 +229,11 @@ public class WorkerThread extends Thread {
 
     /***
      * [Optional] Slow down the running task - for test use only.
-     * 
-     * @param time Amount of time to waste.
+     *
+     * @param time
+     *            Amount of time to waste.
      */
-    private void wasteTime(long time) {
+    private void wasteTime(final long time) {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() < startTime + time) {
             synchronized (mWakeLock) {

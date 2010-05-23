@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,7 +43,7 @@ public class ServiceQueue {
     private Handler mHandler;
     /** Queue of messages waiting to be sent to the service. **/
     private final List<Message> queue;
-    
+
     /***
      * Constructor, which caches the application context and creates the message
      * queue.
@@ -60,7 +60,7 @@ public class ServiceQueue {
      * ServiceConnection.
      */
     private void startService() {
-    	Log.i(MyApplication.LOG_TAG, "ServiceQueue.startService()");
+        Log.i(MyApplication.LOG_TAG, "ServiceQueue.startService()");
         mContext.startService(new Intent(mContext, MyService.class));
     }
 
@@ -85,27 +85,33 @@ public class ServiceQueue {
         message.obj = bundle;
 
         if (mHandler != null) {
-        	/** Send now. **/
-        	mHandler.sendMessage(message);
+            /** Send now. **/
+            mHandler.sendMessage(message);
 
         } else {
-        	/** Send later. **/
-        	synchronized (queue) {
-        		queue.add(message);
-        	}
-        	startService();
+            /** Send later. **/
+            synchronized (queue) {
+                queue.add(message);
+            }
+            startService();
         }
     }
-    
-	public void registerServiceHandler(Handler handler) {
-		mHandler = handler;
-		if (mHandler != null) {
-	        synchronized (queue) {
-	            for (Message message : queue) {
-	                mHandler.sendMessage(message);
-	            }
-	            queue.clear();
-	        }
-		}
-	}
+
+    /***
+     * Called by the Service to register its handler, allowing the Service
+     * Queue to communicate with the Service.
+     *
+     * @param handler Service handler, or NULL to unregister.
+     */
+    public final void registerServiceHandler(final Handler handler) {
+        mHandler = handler;
+        if (mHandler != null) {
+            synchronized (queue) {
+                for (Message message : queue) {
+                    mHandler.sendMessage(message);
+                }
+                queue.clear();
+            }
+        }
+    }
 }

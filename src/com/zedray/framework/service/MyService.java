@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package com.zedray.framework.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -27,6 +28,7 @@ import com.zedray.framework.application.Cache;
 import com.zedray.framework.application.MyApplication;
 import com.zedray.framework.application.ServiceQueue;
 import com.zedray.framework.application.UiQueue;
+import com.zedray.framework.utils.Type;
 
 /***
  * Service class currently performs background work in response to incoming
@@ -42,10 +44,9 @@ public class MyService extends Service {
     private Cache mCache;
     /** Pointer to the Application UiQueue. **/
     private UiQueue mUiQueue;
-    /** Handler for receiving all messages from the ServiceQueue. **/
-    
+    /** Pointer to the Application ServiceQueue. **/
     private ServiceQueue mServiceQueue;
-    
+    /** Handler for receiving all messages from the ServiceQueue. **/
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(final Message message) {
@@ -59,7 +60,8 @@ public class MyService extends Service {
      * Reacts to any incoming message by passing it to the WorkerThread,
      * creating a new one if necessary.
      *
-     * @param message Message from UI.
+     * @param message
+     *            Message from UI.
      */
     private void processMessage(final Message message) {
         synchronized (mWorkerThreadLock) {
@@ -73,40 +75,42 @@ public class MyService extends Service {
         }
     }
 
-    /***
-     * Return the service handler to the ServiceQueue and initialise the
-     * Service at the same time. Note: This is called now (rather than in a
-     * constructor class) because the Application class is not available until
-     * now.
-     */
-
-
     @Override
-    public void onStart(Intent intent, int startId) {
-    	super.onStart(intent, startId);
+    public final void onStart(final Intent intent, final int startId) {
+        Log.i(MyApplication.LOG_TAG, "MyService.onStart()");
+        super.onStart(intent, startId);
     }
 
     @Override
-    public void onCreate() {
-    	MyApplication myApplication = (MyApplication) getApplication();
-    	Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.onCreate() "
-    			+ "myApplication[" + myApplication + "]");
-    	mCache = myApplication.getCache();
-    	mUiQueue = myApplication.getUiQueue();
-    	mServiceQueue = myApplication.getServiceQueue();
-    	mServiceQueue.registerServiceHandler(mHandler);
-    	super.onCreate();
+    public final void onCreate() {
+        MyApplication myApplication = (MyApplication) getApplication();
+        Log.i(MyApplication.LOG_TAG, "MyService.onCreate() " + "myApplication["
+                + myApplication + "]");
+        mCache = myApplication.getCache();
+        mUiQueue = myApplication.getUiQueue();
+        mServiceQueue = myApplication.getServiceQueue();
+        mServiceQueue.registerServiceHandler(mHandler);
+
+        /** Recreate execution state. **/
+        int state = mCache.getLongProcessState();
+        if (state != -1) {
+            Bundle bundle = new Bundle();
+            bundle.putInt(WorkerThread.PROCESS_STATE, state);
+            mServiceQueue.postToService(Type.DO_LONG_TASK, bundle);
+        }
+
+        super.onCreate();
     }
 
     @Override
-    public void onDestroy() {
-    	Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.onDestroy()");
-    	mServiceQueue.registerServiceHandler(null);
-    	super.onDestroy();
+    public final void onDestroy() {
+        Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.onDestroy()");
+        mServiceQueue.registerServiceHandler(null);
+        super.onDestroy();
     }
 
-	@Override
-	public IBinder onBind(Intent arg0) {
-		return null;
-	}
+    @Override
+    public final IBinder onBind(final Intent intent) {
+        return null;
+    }
 }

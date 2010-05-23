@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -131,14 +131,14 @@ public class BaseActivity extends Activity {
      */
     public void post(final Type type, final Bundle bundle) {
         switch (type) {
-            case SHOW_DIALOG:
-                mDialogBundle = bundle;
-                showDialog(Type.DIALOG_STATUS.ordinal());
-                break;
+        case SHOW_DIALOG:
+            mDialogBundle = bundle;
+            showDialog(Type.DIALOG_STATUS.ordinal());
+            break;
 
-            default:
-                // Do nothing.
-                break;
+        default:
+            // Do nothing.
+            break;
         }
     }
 
@@ -147,21 +147,26 @@ public class BaseActivity extends Activity {
      * the Activities own onCreateDialog() method. The code pattern allows more
      * generic dialogs to be handled here (show battery warning dialog, etc).
      *
-     * @param id Dialog Identifier.
+     * @param id
+     *            Dialog Identifier.
      * @return Newly create Dialog.
      */
     @Override
-    protected Dialog onCreateDialog(final int id) {
+    protected final Dialog onCreateDialog(final int id) {
         switch (Type.getType(id)) {
-            case DIALOG_STATUS:
-                String text = mDialogBundle.getString("TEXT");
+        case DIALOG_STATUS:
+            String text = "Cached dialog bundle is NULL";
+            if (mDialogBundle != null) {
+                text = mDialogBundle.getString("TEXT");
                 mDialogBundle = null;
-                return new AlertDialog.Builder(this).setMessage(text).show();
+            }
 
-            default:
-                throw new InvalidParameterException("BaseActivity."
-                        + "onCreateDialog() Unknown dialog type["
-                        + Type.getType(id) + "]");
+            return new AlertDialog.Builder(this).setMessage(text).show();
+
+        default:
+            throw new InvalidParameterException("BaseActivity."
+                    + "onCreateDialog() Unknown dialog type["
+                    + Type.getType(id) + "]");
         }
     }
 

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,6 +36,9 @@ public class Cache {
     /** [Optional] Preferences ID for WorkerThread Queue. **/
     private static final String STATE_QUEUE = "STATE_QUEUE";
 
+    /** [Optional] Execution state. **/
+    private static final String STATE_PROCESS = "STATE_PROCESS";
+
     /** Cached application context. **/
     private final Context mContext;
 
@@ -58,7 +61,7 @@ public class Cache {
     }
 
     /***
-     * [Optional] Get the state of short task
+     * [Optional] Get the state of short task.
      *
      * @return State value.
      */
@@ -103,18 +106,39 @@ public class Cache {
     }
 
     /***
+     * [Optional] Set the execution state of a running Long task.
+     *
+     * @param value Execution state.
+     */
+    public final void setLongProcessState(final int value) {
+        setValue(mContext, STATE_PROCESS, value);
+    }
+
+    /***
+     * [Optional] Get the execution state of a running Long task.
+     *
+     * @return Execution state.
+     */
+    public final int getLongProcessState() {
+        return getValue(mContext, STATE_PROCESS, -1);
+    }
+
+    /***
      * Set a value in the preferences file.
      *
      * @param context Android context.
      * @param key Preferences file parameter key.
      * @param value Preference value.
      */
-    private static void setValue(final Context context, final String key, final String value) {
-        SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_FILE, 0).edit();
+    private static void setValue(final Context context,
+            final String key, final String value) {
+        SharedPreferences.Editor editor =
+            context.getSharedPreferences(PREFS_FILE, 0).edit();
         editor.putString(key, value);
         if (!editor.commit()) {
-            throw new NullPointerException("MainApplication.setValue() Failed to set key[" + key
-                    + "] with value[" + value + "]");
+            throw new NullPointerException(
+                    "MainApplication.setValue() Failed to set key[" + key
+                            + "] with value[" + value + "]");
         }
     }
 
@@ -126,7 +150,42 @@ public class Cache {
      * @param defaultValue Preference value.
      * @return Value as a String.
      */
-    private static String getValue(final Context context, final String key, final String defaultValue) {
-        return context.getSharedPreferences(PREFS_FILE, 0).getString(key, defaultValue);
+    private static String getValue(final Context context, final String key,
+            final String defaultValue) {
+        return context.getSharedPreferences(PREFS_FILE, 0).getString(key,
+                defaultValue);
+    }
+
+    /***
+     * Set a value in the preferences file.
+     *
+     * @param context Android context.
+     * @param key Preferences file parameter key.
+     * @param value Preference value.
+     */
+    private static void setValue(final Context context, final String key,
+            final int value) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(
+                PREFS_FILE, 0).edit();
+        editor.putInt(key, value);
+        if (!editor.commit()) {
+            throw new NullPointerException(
+                    "MainApplication.setValue() Failed to set key[" + key
+                            + "] with value[" + value + "]");
+        }
+    }
+
+    /***
+     * Get a value from the preferences file.
+     *
+     * @param context Android context.
+     * @param key Preferences file parameter key.
+     * @param defaultValue Preference value.
+     * @return Value as a String.
+     */
+    private static int getValue(final Context context, final String key,
+            final int defaultValue) {
+        return context.getSharedPreferences(PREFS_FILE, 0).getInt(key,
+                defaultValue);
     }
 }
