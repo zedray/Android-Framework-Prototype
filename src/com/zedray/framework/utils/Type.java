@@ -24,12 +24,12 @@ public enum Type {
     /***
      * UI to Service messages.
      */
-    DO_X, DO_Y,
+    DO_SHORT_TASK, DO_LONG_TASK,
 
     /***
      * Service to UI messages.
      */
-    UPDATE_X, UPDATE_Y, UPDATE_QUEUE, SHOW_DIALOG,
+    UPDATE_SHORT_TASK, UPDATE_LONG_TASK, UPDATE_QUEUE, SHOW_DIALOG,
 
     /***
      * UI Dialogs.

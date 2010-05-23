@@ -23,19 +23,15 @@
 	    android:layout_height="fill_parent"
 	    >
 	    <Button
-			android:id="@+id/main_Button_DoShortTask"
+			android:id="@+id/main_Button_DoTask"
 			android:layout_height="wrap_content" 
 			android:layout_width="fill_parent"
-			android:text="Do Short Task"/>
-	    <Button
-			android:id="@+id/main_Button_DoLongTask"
-			android:layout_height="wrap_content" 
-			android:layout_width="fill_parent"
-			android:text="Do Long Task"/>		
+			android:text="Do Task"/>
+	
 		<TextView
 		    android:layout_width="fill_parent" 
 		    android:layout_height="wrap_content" 
-		    android:text="Status Short Task:"
+		    android:text="Status Task:"
 		    android:layout_marginTop="10dip"/>
    
 		<LinearLayout  
@@ -45,31 +41,7 @@
 		    android:background="#F5F5F5"
 		    android:layout_margin="8dip">
 			<TextView  
-				android:id="@+id/main_TextView_StatusShortTask"  
-				android:text="No Status"
-			    android:layout_width="wrap_content" 
-			    android:layout_height="wrap_content" 
-			    android:textStyle="bold"
-			    android:textColor="#000000"
-			    android:layout_gravity="center_horizontal"
-			    android:layout_margin="5dip"
-			    android:textSize="20sp"/>
-		</LinearLayout>
-
-		<TextView
-		    android:layout_width="fill_parent" 
-		    android:layout_height="wrap_content" 
-		    android:text="Status Long Task:"
-		    android:layout_marginTop="10dip"/>
-		    
-		<LinearLayout  
-		    android:orientation="vertical"
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:background="#F5F5F5"
-		    android:layout_margin="8dip">
-			<TextView  
-				android:id="@+id/main_TextView_StatusLongTask"  
+				android:id="@+id/main_TextView_StatusTask"  
 				android:text="No Status"
 			    android:layout_width="wrap_content" 
 			    android:layout_height="wrap_content" 
@@ -101,16 +73,6 @@
 			    android:layout_gravity="center_horizontal"
 			    android:layout_margin="5dip"
 			    android:textSize="15sp"/>
-		</LinearLayout>
-		
-		
-		<Button
-			android:id="@+id/main_Button_Go1"
-			android:layout_height="wrap_content" 
-			android:layout_width="fill_parent"/>		
-		<Button
-			android:id="@+id/main_Button_Go2"
-			android:layout_height="wrap_content" 
-			android:layout_width="fill_parent"/>	    
+		</LinearLayout>	    
 	</LinearLayout>
 </ScrollView>

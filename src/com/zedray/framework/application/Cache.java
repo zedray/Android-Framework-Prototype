@@ -28,10 +28,10 @@ public class Cache {
     private static final String PREFS_FILE = "CACHE";
 
     /** [Optional] Preferences ID for process X. **/
-    private static final String STATE_X = "STATE_X";
+    private static final String STATE_SHORT_TASK = "STATE_SHORT_TASK";
 
     /** [Optional] Preferences ID for process Y. **/
-    private static final String STATE_Y = "STATE_Y";
+    private static final String STATE_LONG_TASK = "STATE_LONG_TASK";
 
     /** [Optional] Preferences ID for WorkerThread Queue. **/
     private static final String STATE_QUEUE = "STATE_QUEUE";
@@ -49,39 +49,39 @@ public class Cache {
     }
 
     /***
-     * [Optional] Set the state of process X.
+     * [Optional] Set the state of short task.
      *
      * @param value State value.
      */
-    public final void setX(final String value) {
-        setValue(mContext, STATE_X, value);
+    public final void setStateShortTask(final String value) {
+        setValue(mContext, STATE_SHORT_TASK, value);
     }
 
     /***
-     * [Optional] Get the state of process X.
+     * [Optional] Get the state of short task
      *
      * @return State value.
      */
-    public final String getX() {
-        return getValue(mContext, STATE_X, null);
+    public final String getStateShortTask() {
+        return getValue(mContext, STATE_SHORT_TASK, null);
     }
 
     /***
-     * [Optional] Set the state of process Y.
+     * [Optional] Set the state of long task.
      *
      * @param value State value.
      */
-    public final void setY(final String value) {
-        setValue(mContext, STATE_Y, value);
+    public final void setStateLongTask(final String value) {
+        setValue(mContext, STATE_LONG_TASK, value);
     }
 
     /***
-     * [Optional] Get the state of process Y.
+     * [Optional] Get the state of long task.
      *
      * @return State value.
      */
-    public final String getY() {
-        return getValue(mContext, STATE_Y, null);
+    public final String getStateLongTask() {
+        return getValue(mContext, STATE_LONG_TASK, null);
     }
 
     /***

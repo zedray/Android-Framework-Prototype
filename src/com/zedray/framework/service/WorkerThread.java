@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,7 @@ import android.util.Log;
 import com.zedray.framework.application.Cache;
 import com.zedray.framework.application.MyApplication;
 import com.zedray.framework.application.UiQueue;
+import com.zedray.framework.utils.NotificationUtils;
 import com.zedray.framework.utils.Type;
 
 /***
@@ -37,7 +38,7 @@ public class WorkerThread extends Thread {
      * [Optional] Configures how much time (in milliseconds) should be wasted
      * between UI updates - for test use only.
      */
-    private static final int WASTE_TIME = 3000;
+    private static final int WASTE_TIME = 2000;
     /** Synchronisation lock for the Thread Sleep. **/
     private final Object mWakeLock = new Object();
     /** Queue of incoming messages. **/
@@ -46,6 +47,8 @@ public class WorkerThread extends Thread {
     private final Cache mCache;
     /** Pointer to the Application UiQueue. **/
     private final UiQueue mUiQueue;
+    /** Pointer to MyService.. **/
+    private MyService mMyService;
     /***
      * TRUE when the WorkerThread can no longer handle incoming messages,
      * because it is dead or shutting down.
@@ -58,9 +61,11 @@ public class WorkerThread extends Thread {
      * @param cache Application Cache.
      * @param uiQueue UiQueue.
      */
-    protected WorkerThread(final Cache cache, final UiQueue uiQueue) {
+    protected WorkerThread(final Cache cache, final UiQueue uiQueue,
+    		final MyService myService) {
         mCache = cache;
         mUiQueue = uiQueue;
+        mMyService = myService;
     }
 
     /***
@@ -108,12 +113,12 @@ public class WorkerThread extends Thread {
             showQueue();
 
             switch (type) {
-                case DO_X:
-                    doX(bundle);
+                case DO_SHORT_TASK:
+                	doShortTask(bundle);
                     break;
 
-                case DO_Y:
-                    doY(bundle);
+                case DO_LONG_TASK:
+                	doLongTask(bundle);
                     break;
 
                 default:
@@ -122,6 +127,7 @@ public class WorkerThread extends Thread {
             }
         }
         stopping = true;
+        mMyService.stopSelf();
     }
 
     /***
@@ -130,18 +136,25 @@ public class WorkerThread extends Thread {
      *
      * @param bundle Bundle of extra information.
      */
-    private void doX(final Bundle bundle) {
-        mCache.setX("Loading X");
-        mUiQueue.postToUi(Type.UPDATE_X, null, true);
-        wasteTime();
-        mCache.setX("Running X");
-        mUiQueue.postToUi(Type.UPDATE_X, null, true);
-        wasteTime();
-        mCache.setX("Finishing X");
-        mUiQueue.postToUi(Type.UPDATE_X, null, true);
-        wasteTime();
-        mCache.setX("Finished X");
-        mUiQueue.postToUi(Type.UPDATE_X, null, true);
+    private void doShortTask(final Bundle bundle) {
+        mCache.setStateShortTask("Loading short task");
+        mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
+        wasteTime(WASTE_TIME);
+        mCache.setStateShortTask("Running short task");
+        mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
+        wasteTime(WASTE_TIME);
+        mCache.setStateShortTask("Finishing short task");
+        mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
+        wasteTime(WASTE_TIME);
+        mCache.setStateShortTask("Finished short task");
+        mUiQueue.postToUi(Type.UPDATE_SHORT_TASK, null, true);
+        
+        if (bundle != null) {
+            Bundle outBundle = new Bundle();
+            outBundle.putString("TEXT", "The short task has finished. Called from ["
+                    + bundle.getString("TEXT") + "]");
+            mUiQueue.postToUi(Type.SHOW_DIALOG, outBundle, false);        	
+        }
     }
 
     /***
@@ -150,22 +163,21 @@ public class WorkerThread extends Thread {
      *
      * @param bundle Bundle of extra information.
      */
-    private void doY(final Bundle bundle) {
-        mCache.setY("Loading Y");
-        mUiQueue.postToUi(Type.UPDATE_Y, null, true);
-        wasteTime();
-        mCache.setY("Running Y");
-        Bundle outBundle = new Bundle();
-        outBundle.putString("TEXT", "Message from service. Responding to ["
-                + bundle.getString("TEXT") + "]");
-        mUiQueue.postToUi(Type.SHOW_DIALOG, outBundle, false);
-        mUiQueue.postToUi(Type.UPDATE_Y, null, true);
-        wasteTime();
-        mCache.setY("Finishing Y");
-        mUiQueue.postToUi(Type.UPDATE_Y, null, true);
-        wasteTime();
-        mCache.setY("Finished Y");
-        mUiQueue.postToUi(Type.UPDATE_Y, null, true);
+    private void doLongTask(final Bundle bundle) {
+        mCache.setStateLongTask("Loading long task");
+        mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
+        wasteTime(WASTE_TIME);
+        
+    	for (int i = 0; i <= 100; i+=10) {
+            mCache.setStateLongTask("Long task " + i + "% complete");
+            mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
+    		NotificationUtils.notifyUserOfProgress(mMyService.getApplicationContext(), i);
+    		wasteTime(WASTE_TIME);
+    	}
+
+        mCache.setStateLongTask("Long task done");
+        mUiQueue.postToUi(Type.UPDATE_LONG_TASK, null, true);
+        NotificationUtils.notifyUserOfProgress(mMyService.getApplicationContext(), -1);
     }
 
     /***
@@ -185,10 +197,12 @@ public class WorkerThread extends Thread {
 
     /***
      * [Optional] Slow down the running task - for test use only.
+     * 
+     * @param time Amount of time to waste.
      */
-    private void wasteTime() {
+    private void wasteTime(long time) {
         long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() < startTime + WASTE_TIME) {
+        while (System.currentTimeMillis() < startTime + time) {
             synchronized (mWakeLock) {
                 try {
                     mWakeLock.wait(startTime + WASTE_TIME

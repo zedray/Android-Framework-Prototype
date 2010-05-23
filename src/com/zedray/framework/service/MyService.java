@@ -18,7 +18,6 @@ package com.zedray.framework.service;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -26,6 +25,7 @@ import android.util.Log;
 
 import com.zedray.framework.application.Cache;
 import com.zedray.framework.application.MyApplication;
+import com.zedray.framework.application.ServiceQueue;
 import com.zedray.framework.application.UiQueue;
 
 /***
@@ -43,6 +43,9 @@ public class MyService extends Service {
     /** Pointer to the Application UiQueue. **/
     private UiQueue mUiQueue;
     /** Handler for receiving all messages from the ServiceQueue. **/
+    
+    private ServiceQueue mServiceQueue;
+    
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(final Message message) {
@@ -61,7 +64,7 @@ public class MyService extends Service {
     private void processMessage(final Message message) {
         synchronized (mWorkerThreadLock) {
             if (mWorkerThread == null || mWorkerThread.isStopping()) {
-                mWorkerThread = new WorkerThread(mCache, mUiQueue);
+                mWorkerThread = new WorkerThread(mCache, mUiQueue, this);
                 mWorkerThread.add(message);
                 mWorkerThread.start();
             } else {
@@ -70,30 +73,40 @@ public class MyService extends Service {
         }
     }
 
-    @Override
-    public final IBinder onBind(final Intent intent) {
-        return new MyBinder();
-    }
-
     /***
      * Return the service handler to the ServiceQueue and initialise the
      * Service at the same time. Note: This is called now (rather than in a
      * constructor class) because the Application class is not available until
      * now.
      */
-    public class MyBinder extends Binder {
-        /***
-         * Return the service handler and initialise the Service.
-         *
-         * @return Service Handler.
-         */
-        public final Handler getHandler() {
-            MyApplication myApplication = (MyApplication) getApplication();
-            Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.getHandler() "
-                    + "myApplication[" + myApplication + "]");
-            mCache = myApplication.getCache();
-            mUiQueue = myApplication.getUiQueue();
-            return mHandler;
-        }
+
+
+    @Override
+    public void onStart(Intent intent, int startId) {
+    	super.onStart(intent, startId);
     }
+
+    @Override
+    public void onCreate() {
+    	MyApplication myApplication = (MyApplication) getApplication();
+    	Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.onCreate() "
+    			+ "myApplication[" + myApplication + "]");
+    	mCache = myApplication.getCache();
+    	mUiQueue = myApplication.getUiQueue();
+    	mServiceQueue = myApplication.getServiceQueue();
+    	mServiceQueue.registerServiceHandler(mHandler);
+    	super.onCreate();
+    }
+
+    @Override
+    public void onDestroy() {
+    	Log.i(MyApplication.LOG_TAG, "MyService.MyBinder.onDestroy()");
+    	mServiceQueue.registerServiceHandler(null);
+    	super.onDestroy();
+    }
+
+	@Override
+	public IBinder onBind(Intent arg0) {
+		return null;
+	}
 }

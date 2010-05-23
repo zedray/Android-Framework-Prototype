@@ -15,5 +15,7 @@
    limitations under the License.
  -->
 <resources>
-    <string name="app_name">FrameworkPrototype - </string>
+	<string name="app_name">Framework</string>
+	<string name="service_name">Framework Service</string>
+    <string name="activity_title">FrameworkPrototype - </string>
 </resources>

@@ -20,14 +20,12 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 
 import com.zedray.framework.service.MyService;
 import com.zedray.framework.utils.Type;
@@ -45,7 +43,7 @@ public class ServiceQueue {
     private Handler mHandler;
     /** Queue of messages waiting to be sent to the service. **/
     private final List<Message> queue;
-
+    
     /***
      * Constructor, which caches the application context and creates the message
      * queue.
@@ -62,51 +60,9 @@ public class ServiceQueue {
      * ServiceConnection.
      */
     private void startService() {
-        mContext.bindService(new Intent(mContext, MyService.class),
-                mServiceConnection, Context.BIND_AUTO_CREATE);
+    	Log.i(MyApplication.LOG_TAG, "ServiceQueue.startService()");
+        mContext.startService(new Intent(mContext, MyService.class));
     }
-
-    /***
-     * Stop the service and clear the service handler (this feature is not yet
-     * supported).
-     */
-    @Deprecated
-    public final void stopService() {
-        if (mHandler != null) {
-            mContext.unbindService(mServiceConnection);
-        }
-    }
-
-    /***
-     * Implement ServiceConnection for responding to service connection change
-     * events.
-     */
-    private final ServiceConnection mServiceConnection =
-        new ServiceConnection() {
-
-        /***
-         * Service connected so get the service handler and send any pending
-         * messages.
-         */
-        public void onServiceConnected(final ComponentName className,
-                final IBinder service) {
-            mHandler = ((MyService.MyBinder) service).getHandler();
-
-            synchronized (queue) {
-                for (Message message : queue) {
-                    mHandler.sendMessage(message);
-                }
-                queue.clear();
-            }
-        }
-
-        /***
-         * Service disconnected to set the service handler to NULL.
-         */
-        public void onServiceDisconnected(final ComponentName className) {
-            mHandler = null;
-        }
-    };
 
     /***
      * Post a message to the Service if it is connected. If the service is not
@@ -129,15 +85,27 @@ public class ServiceQueue {
         message.obj = bundle;
 
         if (mHandler != null) {
-            /** Send now. **/
-            mHandler.sendMessage(message);
+        	/** Send now. **/
+        	mHandler.sendMessage(message);
 
         } else {
-            /** Send later. **/
-            synchronized (queue) {
-                queue.add(message);
-            }
-            startService();
+        	/** Send later. **/
+        	synchronized (queue) {
+        		queue.add(message);
+        	}
+        	startService();
         }
     }
+    
+	public void registerServiceHandler(Handler handler) {
+		mHandler = handler;
+		if (mHandler != null) {
+	        synchronized (queue) {
+	            for (Message message : queue) {
+	                mHandler.sendMessage(message);
+	            }
+	            queue.clear();
+	        }
+		}
+	}
 }
