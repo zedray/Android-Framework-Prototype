@@ -52,8 +52,6 @@ public class LongTasks extends BaseActivity {
                 getServiceQueue().postToService(Type.DO_LONG_TASK, null);
             }
         });
-
-        updateAll();
     }
 
     @Override

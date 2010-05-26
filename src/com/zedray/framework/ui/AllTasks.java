@@ -76,8 +76,6 @@ public class AllTasks extends BaseActivity {
 
         setButton(R.id.main_Button_Go1, ShortTasks.class, context);
         setButton(R.id.main_Button_Go2, LongTasks.class, context);
-
-        updateAll();
     }
 
     @Override

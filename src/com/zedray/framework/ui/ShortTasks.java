@@ -54,8 +54,6 @@ public class ShortTasks extends BaseActivity {
                 getServiceQueue().postToService(Type.DO_SHORT_TASK, outBundle);
             }
         });
-
-        updateAll();
     }
 
     @Override
