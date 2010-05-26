@@ -30,8 +30,12 @@ import com.zedray.framework.utils.NotificationUtils;
 import com.zedray.framework.utils.Type;
 
 /***
- * WorkerThread queues incoming messages and performs all long running tasks in
- * its own thread to avoid blocking the UI.
+ * Used by the Service to perform long running tasks (e.g. network
+ * connectivity) in a single separate thread.  This implementation uses a
+ * single thread to pop items off the end of a ServiceQueue, providing a clear
+ * finishing point (i.e. current task complete & queue empty) where the
+ * Services own stopSelf() method can then be called to terminate the
+ * background part of the Application.
  */
 public class WorkerThread extends Thread {
 
@@ -50,7 +54,7 @@ public class WorkerThread extends Thread {
      * between UI updates - for test use only.
      */
     private static final int WASTE_TIME = 2000;
-    /** Synchronisation lock for the Thread Sleep. **/
+    /** [Optional] Synchronisation lock for the Thread Sleep. **/
     private final Object mWakeLock = new Object();
     /** Queue of incoming messages. **/
     private final List<Message> mWorkQueue = new ArrayList<Message>();
@@ -58,16 +62,17 @@ public class WorkerThread extends Thread {
     private final Cache mCache;
     /** Pointer to the Application UiQueue. **/
     private final UiQueue mUiQueue;
-    /** Pointer to MyService.. **/
+    /** Pointer to the parent Service.. **/
     private MyService mMyService;
     /***
      * TRUE when the WorkerThread can no longer handle incoming messages,
-     * because it is dead or shutting down.
+     * because it is shutting down or dead.
      */
     private boolean stopping = false;
 
     /***
-     * Constructor which caches the Application Cache, UiQueue and Service.
+     * Constructor which stores pointers to the Application Cache, UiQueue and
+     * parent Service.
      *
      * @param cache Application Cache.
      * @param uiQueue UiQueue.

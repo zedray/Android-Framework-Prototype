@@ -89,9 +89,14 @@ public class MyService extends Service {
         mCache = myApplication.getCache();
         mUiQueue = myApplication.getUiQueue();
         mServiceQueue = myApplication.getServiceQueue();
+        
+        /**
+         * Resister with the ServiceQueue that the Service is now ready to
+         * handle incoming messages.
+         */
         mServiceQueue.registerServiceHandler(mHandler);
 
-        /** Recreate execution state. **/
+        /** Recreate an unresolved execution state. **/
         int state = mCache.getLongProcessState();
         if (state != -1) {
             Bundle bundle = new Bundle();

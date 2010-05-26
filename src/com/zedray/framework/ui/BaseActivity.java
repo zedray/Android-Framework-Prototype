@@ -161,7 +161,7 @@ public class BaseActivity extends Activity {
                 mDialogBundle = null;
             }
 
-            return new AlertDialog.Builder(this).setMessage(text).show();
+            return new AlertDialog.Builder(this).setMessage(text).create();
 
         default:
             throw new InvalidParameterException("BaseActivity."

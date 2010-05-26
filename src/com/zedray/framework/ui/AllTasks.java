@@ -44,8 +44,9 @@ public class AllTasks extends BaseActivity {
     @Override
     public final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
         setTitle(AllTasks.class.getSimpleName());
+        setContentView(R.layout.main);
+        
         final Context context = this;
 
         mTextViewX = (TextView) findViewById(

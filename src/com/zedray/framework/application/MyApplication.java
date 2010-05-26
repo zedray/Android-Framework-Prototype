@@ -32,11 +32,11 @@ public class MyApplication extends Application {
     private UiQueue mUiQueue;
     /** Lazy loaded Cache. **/
     private Cache mCache;
-    /** Lazy loaded Database **/
+    /** TODO: Add a lazy loaded database helper. **/
     // private DatabaseHelper mDb;
 
     /***
-     * Returns the Lazy loaded ServiceQueue.
+     * Returns the lazy loaded ServiceQueue.
      *
      * @return ServiceQueue
      */
@@ -48,7 +48,7 @@ public class MyApplication extends Application {
     }
 
     /***
-     * Returns the Lazy loaded UiQueue.
+     * Returns the lazy loaded UiQueue.
      *
      * @return UiQueue
      */
@@ -60,7 +60,7 @@ public class MyApplication extends Application {
     }
 
     /***
-     * Returns the Lazy loaded Cache.
+     * Returns the lazy loaded Cache.
      *
      * @return Cache
      */
@@ -72,12 +72,12 @@ public class MyApplication extends Application {
     }
 
     /***
-     * Returns the Lazy loaded DatabaseHelper.
+     * Returns the lazy loaded DatabaseHelper.
      *
      * @return DatabaseHelper
      */
     public final synchronized DatabaseHelper getDb() {
-        // TODO Implement database.
+        // TODO: Implement a database helper.
         return null;
     }
 

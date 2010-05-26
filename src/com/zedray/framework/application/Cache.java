@@ -20,8 +20,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /***
- * Application Cache Utility class for storing information either permanently
- * (in a properties file), or during the life span of the Application class.
+ * Store application state information either permanently (in a properties
+ * file), or in memory for the duration of the Application class lifecycle.
  */
 public class Cache {
     /** Preferences file name. **/

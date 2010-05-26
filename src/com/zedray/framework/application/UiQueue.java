@@ -61,6 +61,7 @@ public class UiQueue {
         mHandler = handler;
         if (queue != null) {
             synchronized (mQueueLock) {
+                Log.w("", "UiQueue.subscribe() calling sendMessage()");                
                 mHandler.sendMessage(queue);
                 queue = null;
             }
@@ -125,6 +126,9 @@ public class UiQueue {
         } else {
             /** Send later. **/
             synchronized (mQueueLock) {
+                /**
+                 * [Optional] Only store the message with the highest priority.
+                 */
                 if (queue == null || message.what < queue.what) {
                     queue = message;
                 } else {

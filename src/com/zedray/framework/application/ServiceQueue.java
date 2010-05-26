@@ -45,8 +45,8 @@ public class ServiceQueue {
     private final List<Message> queue;
 
     /***
-     * Constructor, which caches the application context and creates the message
-     * queue.
+     * Constructor, which caches the application context and creates an empty
+     * message queue.
      *
      * @param context Application context.
      */
@@ -56,8 +56,9 @@ public class ServiceQueue {
     }
 
     /***
-     * Start the Service by calling an bindService linked to my
-     * ServiceConnection.
+     * Start the Service.  After the Service has been created it will call
+     * ServiceQueue.registerServiceHandler(), which will trigger the posting of
+     * any waiting Service messages.
      */
     private void startService() {
         Log.i(MyApplication.LOG_TAG, "ServiceQueue.startService()");
@@ -65,9 +66,9 @@ public class ServiceQueue {
     }
 
     /***
-     * Post a message to the Service if it is connected. If the service is not
-     * connected, add the message to the queue and then initiate a service
-     * binding.
+     * Post a message to the registered (i.e. running) Service.  If the Service
+     * is not connected, then add the message to the queue and call
+     * startService().
      *
      * @param type Message Type.
      * @param bundle Optional Bundle of extra message information, NULL
@@ -79,17 +80,20 @@ public class ServiceQueue {
                     + "Type cannot be NULL");
         }
 
-        /** Create new message object **/
+        /** Create a new message object. **/
         Message message = Message.obtain();
         message.what = type.ordinal();
         message.obj = bundle;
 
         if (mHandler != null) {
-            /** Send now. **/
+            /** Service is running, so send message now. **/
             mHandler.sendMessage(message);
 
         } else {
-            /** Send later. **/
+            /**
+             * Service is not running, so queue message (to send later) and
+             * then start the service.
+             */
             synchronized (queue) {
                 queue.add(message);
             }
@@ -98,14 +102,18 @@ public class ServiceQueue {
     }
 
     /***
-     * Called by the Service to register its handler, allowing the Service
-     * Queue to communicate with the Service.
+     * Called by the Service to register its handler.  Once registered, the
+     * ServiceQueue will use this Handler to send messages to the running
+     * Service.  The service will call this method in its onDestroy() method
+     * with a NULL Handler to unregister and thereby indicate that the Service
+     * will need to be restarted before it can handle any new messages. 
      *
-     * @param handler Service handler, or NULL to unregister.
+     * @param handler Active Service handler, or NULL to unregister.
      */
     public final void registerServiceHandler(final Handler handler) {
         mHandler = handler;
         if (mHandler != null) {
+            /** Send all pending messages to the newly created Service. **/
             synchronized (queue) {
                 for (Message message : queue) {
                     mHandler.sendMessage(message);
